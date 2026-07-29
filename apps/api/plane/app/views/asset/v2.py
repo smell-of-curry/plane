@@ -27,6 +27,18 @@ from plane.bgtasks.storage_metadata_task import get_asset_object_metadata
 from plane.throttles.asset import AssetRateThrottle
 
 
+def redirect_to_signed_url(signed_url: str) -> HttpResponseRedirect:
+    """
+    Redirect to a MinIO/S3 presigned GET without allowing caches to keep the
+    Location past SIGNED_URL_EXPIRATION (default 1h). Cached 302s are a common
+    cause of "Error loading image" a day later.
+    """
+    response = HttpResponseRedirect(signed_url)
+    response["Cache-Control"] = "private, no-store, max-age=0, must-revalidate"
+    response["Pragma"] = "no-cache"
+    return response
+
+
 class UserAssetsV2Endpoint(BaseAPIView):
     """This endpoint is used to upload user profile images."""
 
@@ -484,7 +496,7 @@ class WorkspaceFileAssetEndpoint(BaseAPIView):
             filename=asset.attributes.get("name"),
         )
         # Redirect to the signed URL
-        return HttpResponseRedirect(signed_url)
+        return redirect_to_signed_url(signed_url)
 
 
 class StaticFileAssetEndpoint(BaseAPIView):
@@ -529,7 +541,7 @@ class StaticFileAssetEndpoint(BaseAPIView):
             disposition=disposition,
         )
         # Redirect to the signed URL
-        return HttpResponseRedirect(signed_url)
+        return redirect_to_signed_url(signed_url)
 
 
 class AssetRestoreEndpoint(BaseAPIView):
@@ -691,7 +703,7 @@ class ProjectAssetEndpoint(BaseAPIView):
             filename=asset.attributes.get("name"),
         )
         # Redirect to the signed URL
-        return HttpResponseRedirect(signed_url)
+        return redirect_to_signed_url(signed_url)
 
 
 class ProjectBulkAssetEndpoint(BaseAPIView):
@@ -877,7 +889,7 @@ class WorkspaceAssetDownloadEndpoint(BaseAPIView):
             filename=asset.attributes.get("name", uuid.uuid4().hex),
         )
 
-        return HttpResponseRedirect(signed_url)
+        return redirect_to_signed_url(signed_url)
 
 
 class ProjectAssetDownloadEndpoint(BaseAPIView):
@@ -905,4 +917,4 @@ class ProjectAssetDownloadEndpoint(BaseAPIView):
             filename=asset.attributes.get("name", uuid.uuid4().hex),
         )
 
-        return HttpResponseRedirect(signed_url)
+        return redirect_to_signed_url(signed_url)

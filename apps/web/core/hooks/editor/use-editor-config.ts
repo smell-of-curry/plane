@@ -17,6 +17,23 @@ import { useFileSize } from "@/hooks/use-file-size";
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();
 
+/**
+ * Absolute MinIO/S3 signed URLs expire. If we can recover an asset UUID from the
+ * path, return it so callers rebuild a fresh `/api/assets/v2/...` URL instead of
+ * reusing a dead `X-Amz-...` link.
+ */
+const extractAssetIdFromPath = (path: string): string | null => {
+  if (!path) return null;
+  const apiMatch = path.match(
+    /\/api\/assets\/v2\/workspaces\/[^/]+\/projects\/[^/]+\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/?/i
+  );
+  if (apiMatch?.[1]) return apiMatch[1];
+  // MinIO object key: `{workspaceId}/{uuid}-{filename}`
+  const objectMatch = path.match(/\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})-[^/?#]+/i);
+  if (objectMatch?.[1]) return objectMatch[1];
+  return null;
+};
+
 type TArgs = {
   projectId?: string;
   uploadFile: TFileHandler["upload"];
@@ -58,31 +75,33 @@ export const useEditorConfig = () => {
         },
         getAssetDownloadSrc: async (path) => {
           if (!path) return "";
-          if (path?.startsWith("http")) {
-            return path;
-          } else {
+          const recoveredId = path.startsWith("http") ? extractAssetIdFromPath(path) : null;
+          const assetId = recoveredId || (!path.startsWith("http") ? path : null);
+          if (assetId) {
             return (
               getEditorAssetDownloadSrc({
-                assetId: path,
+                assetId,
                 projectId,
                 workspaceSlug,
               }) ?? ""
             );
           }
+          return path;
         },
         getAssetSrc: async (path) => {
           if (!path) return "";
-          if (path?.startsWith("http")) {
-            return path;
-          } else {
+          const recoveredId = path.startsWith("http") ? extractAssetIdFromPath(path) : null;
+          const assetId = recoveredId || (!path.startsWith("http") ? path : null);
+          if (assetId) {
             return (
               getEditorAssetSrc({
-                assetId: path,
+                assetId,
                 projectId,
                 workspaceSlug,
               }) ?? ""
             );
           }
+          return path;
         },
         restore: async (src: string) => {
           if (src?.startsWith("http")) {
