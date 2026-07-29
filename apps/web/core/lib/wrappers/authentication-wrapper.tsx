@@ -29,11 +29,28 @@ const isValidURL = (url: string): boolean => {
   return !disallowedSchemes.test(url);
 };
 
+/**
+ * Build `/?next_path=...` so login can return the user to the page they wanted,
+ * including query string (e.g. `?folder=` / `?type=`).
+ */
+const buildLoginRedirectHref = (pathname: string | null, search: string) => {
+  const returnTo = `${pathname || ""}${search || ""}`;
+  if (!returnTo || returnTo === "/") return "/";
+  return `/?next_path=${encodeURIComponent(returnTo)}`;
+};
+
 export const AuthenticationWrapper = observer(function AuthenticationWrapper(props: TAuthenticationWrapper) {
   const pathname = usePathname();
   const router = useAppRouter();
   const searchParams = useSearchParams();
   const nextPath = searchParams.get("next_path");
+  // Drop next_path itself so we don't nest return URLs when bouncing through login.
+  const returnSearch = (() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("next_path");
+    const qs = params.toString();
+    return qs ? `?${qs}` : "";
+  })();
   // props
   const { children, pageType = EPageTypes.AUTHENTICATED } = props;
   // hooks
@@ -103,7 +120,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
 
   if (pageType === EPageTypes.ONBOARDING) {
     if (!currentUser?.id) {
-      router.push(`/${pathname ? `?next_path=${pathname}` : ``}`);
+      router.push(buildLoginRedirectHref(pathname, returnSearch));
       return <></>;
     } else {
       if (currentUser && currentUserProfile?.id && isUserOnboard) {
@@ -116,7 +133,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
 
   if (pageType === EPageTypes.SET_PASSWORD) {
     if (!currentUser?.id) {
-      router.push(`/${pathname ? `?next_path=${pathname}` : ``}`);
+      router.push(buildLoginRedirectHref(pathname, returnSearch));
       return <></>;
     } else {
       if (currentUser && !currentUser?.is_password_autoset && currentUserProfile?.id && isUserOnboard) {
@@ -135,7 +152,7 @@ export const AuthenticationWrapper = observer(function AuthenticationWrapper(pro
         return <></>;
       }
     } else {
-      router.push(`/${pathname ? `?next_path=${pathname}` : ``}`);
+      router.push(buildLoginRedirectHref(pathname, returnSearch));
       return <></>;
     }
   }

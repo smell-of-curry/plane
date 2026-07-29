@@ -246,17 +246,16 @@ export class ProjectPageStore implements IProjectPageStore {
   });
 
   getMoveTargetFolders = computedFn((projectId: string, access: number | undefined, excludeId?: string) => {
-    return Object.values(this.data)
-      .filter(
-        (page) =>
-          page.node_type === "folder" &&
-          page.project_ids?.includes(projectId) &&
-          !page.archived_at &&
-          (access === undefined || page.access === access) &&
-          page.id !== excludeId
-      )
-      .slice()
-      .toSorted((a, b) => getPageName(a.name).localeCompare(getPageName(b.name)));
+    const folders = Object.values(this.data).filter(
+      (page) =>
+        page.node_type === "folder" &&
+        page.project_ids?.includes(projectId) &&
+        !page.archived_at &&
+        (access === undefined || page.access === access) &&
+        page.id !== excludeId
+    );
+    folders.sort((a, b) => getPageName(a.name).localeCompare(getPageName(b.name)));
+    return folders;
   });
 
   updateFilters = <T extends keyof TPageFilters>(filterKey: T, filterValue: TPageFilters[T]) => {
