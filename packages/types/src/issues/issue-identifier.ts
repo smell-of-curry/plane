@@ -37,6 +37,10 @@ export type TIssueTypeIdentifier = {
 
 export type TIdentifierTextProps = {
   identifier: string;
+  /** Text copied when click-to-copy is enabled. Defaults to `identifier`. */
+  clipboardText?: string;
+  /** Tooltip when click-to-copy is disabled (e.g. show the real work item ID). */
+  tooltipContent?: string;
   enableClickToCopyIdentifier?: boolean;
   size?: TIssueIdentifierSize;
   variant?: TIdentifierTextVariant;

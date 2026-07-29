@@ -26,12 +26,20 @@ const VARIANT_MAP: Record<TIdentifierTextVariant, string> = {
 };
 
 export function IdentifierText(props: TIdentifierTextProps) {
-  const { identifier, enableClickToCopyIdentifier = false, size = "lg", variant = "default" } = props;
+  const {
+    identifier,
+    clipboardText,
+    tooltipContent,
+    enableClickToCopyIdentifier = false,
+    size = "lg",
+    variant = "default",
+  } = props;
+  const textToCopy = clipboardText || identifier;
   // handlers
   const handleCopyIssueIdentifier = () => {
     if (enableClickToCopyIdentifier) {
       navigator.clipboard
-        .writeText(identifier)
+        .writeText(textToCopy)
         .then(() => {
           setToast({
             type: TOAST_TYPE.SUCCESS,
@@ -47,14 +55,21 @@ export function IdentifierText(props: TIdentifierTextProps) {
 
   const textSizeClassName = SIZE_MAP[size];
   const variantClassName = VARIANT_MAP[variant];
+  const resolvedTooltip = enableClickToCopyIdentifier ? "Click to copy" : tooltipContent;
+  const showTooltip = enableClickToCopyIdentifier || !!tooltipContent;
 
   return (
-    <Tooltip tooltipContent="Click to copy" disabled={!enableClickToCopyIdentifier} position="top">
+    <Tooltip tooltipContent={resolvedTooltip || ""} disabled={!showTooltip} position="top">
       <button
         type="button"
-        className={cn("text-12 font-medium whitespace-nowrap text-tertiary", textSizeClassName, variantClassName, {
-          "cursor-pointer": enableClickToCopyIdentifier,
-        })}
+        className={cn(
+          "max-w-full truncate text-12 font-medium whitespace-nowrap text-tertiary",
+          textSizeClassName,
+          variantClassName,
+          {
+            "cursor-pointer": enableClickToCopyIdentifier,
+          }
+        )}
         onClick={handleCopyIssueIdentifier}
         disabled={!enableClickToCopyIdentifier}
       >

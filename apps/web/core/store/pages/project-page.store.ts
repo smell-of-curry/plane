@@ -255,6 +255,7 @@ export class ProjectPageStore implements IProjectPageStore {
           (access === undefined || page.access === access) &&
           page.id !== excludeId
       )
+      .slice()
       .toSorted((a, b) => getPageName(a.name).localeCompare(getPageName(b.name)));
   });
 
