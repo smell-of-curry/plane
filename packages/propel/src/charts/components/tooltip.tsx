@@ -19,6 +19,12 @@ type Props = {
   itemDotColors: Record<string, string>;
 };
 
+/** Strip IEEE float noise for tooltip display (e.g. 2.4000000000000004 → 2.4). */
+function formatTooltipValue(value: ValueType | undefined): string | number {
+  if (typeof value !== "number" || !Number.isFinite(value)) return value ?? "";
+  return Number(value.toFixed(2));
+}
+
 export const CustomTooltip = React.memo(function CustomTooltip(props: Props) {
   const { active, activeKey, label, payload, itemKeys, itemLabels, itemDotColors } = props;
   // derived values
@@ -53,7 +59,7 @@ export const CustomTooltip = React.memo(function CustomTooltip(props: Props) {
               )}
               <span className="truncate text-tertiary">{itemLabels[item?.dataKey]}:</span>
             </div>
-            <span className="flex-shrink-0 font-medium text-secondary">{item?.value}</span>
+            <span className="flex-shrink-0 font-medium text-secondary">{formatTooltipValue(item?.value)}</span>
           </div>
         );
       })}

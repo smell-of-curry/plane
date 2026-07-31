@@ -18,10 +18,13 @@ type Props = {
 };
 
 function ProgressChart({ distribution, totalIssues, className = "", plotTitle = "work items" }: Props) {
-  const chartData: TChartData<string, string>[] = Object.keys(distribution ?? []).map((key, index) => ({
+  const dates = Object.keys(distribution ?? []);
+  // Avoid /0 when a single day; round so IEEE leftovers never hit the tooltip (e.g. 2.4000000000000004).
+  const lastIndex = Math.max(dates.length - 1, 1);
+  const chartData: TChartData<string, string>[] = dates.map((key, index) => ({
     name: renderFormattedDateWithoutYear(key),
     current: distribution[key] ?? 0,
-    ideal: totalIssues * (1 - index / (Object.keys(distribution ?? []).length - 1)),
+    ideal: Math.round(totalIssues * (1 - index / lastIndex) * 100) / 100,
   }));
 
   return (
