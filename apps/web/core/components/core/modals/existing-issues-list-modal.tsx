@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Rocket } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // i18n
@@ -22,11 +22,10 @@ import { generateWorkItemLink, getTabIndex } from "@plane/utils";
 // hooks
 import useDebounce from "@/hooks/use-debounce";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
 // services
 import { ProjectService } from "@/services/project";
 // components
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 import { IssueSearchModalEmptyState } from "./issue-search-modal-empty-state";
 
 type Props = {
@@ -98,7 +97,7 @@ export function ExistingIssuesListModal(props: Props) {
     handleClose();
   };
 
-  const handleSearch = () => {
+  const handleSearch = useCallback(() => {
     if (!isOpen || !workspaceSlug) return;
     setIsLoading(true);
     const searchService =
@@ -117,7 +116,15 @@ export function ExistingIssuesListModal(props: Props) {
         setIsSearching(false);
         setIsLoading(false);
       });
-  };
+  }, [
+    debouncedSearchTerm,
+    isOpen,
+    isWorkspaceLevel,
+    projectId,
+    searchParams,
+    workItemSearchServiceCallback,
+    workspaceSlug,
+  ]);
 
   const handleSelectIssues = () => {
     setSelectedIssues((prevData) => (prevData.length === filteredIssues.length ? [] : [...filteredIssues]));
@@ -132,7 +139,7 @@ export function ExistingIssuesListModal(props: Props) {
 
   useEffect(() => {
     handleSearch();
-  }, [debouncedSearchTerm, isOpen, isWorkspaceLevel, projectId, workspaceSlug]);
+  }, [debouncedSearchTerm, isOpen, isWorkspaceLevel, projectId, workspaceSlug, handleSearch]);
 
   const filteredIssues = issues.filter((issue) => !shouldHideIssue?.(issue));
 

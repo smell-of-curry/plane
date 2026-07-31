@@ -20,8 +20,6 @@ import { cn } from "@plane/utils";
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
-// plane-web imports
-import { IssueTypeIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
 // local imports
 import { IdentifierText } from "../issue-detail/identifier-text";
 import { CreateUpdateIssueModal } from "../issue-modal/modal";
@@ -148,7 +146,6 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
                 <div className="flex-shrink-0">
                   {issue.project_id && (
                     <div className="flex items-center space-x-2">
-                      {issue?.type_id && <IssueTypeIdentifier issueTypeId={issue.type_id} />}
                       <IdentifierText
                         identifier={projectIdentifier}
                         enableClickToCopyIdentifier
@@ -183,11 +180,12 @@ export const DraftIssueBlock = observer(function DraftIssueBlock(props: Props) {
             <DraftIssueProperties
               className={`relative flex flex-wrap ${isSidebarCollapsed ? "md:flex-shrink-0 md:flex-grow" : "lg:flex-shrink-0 lg:flex-grow"} items-center gap-2 whitespace-nowrap`}
               issue={issue}
-              updateIssue={async (projectId, issueId, data) => {
-                await updateIssue(workspaceSlug, issueId, data);
+              updateIssue={async (projectId, draftIssueId, data) => {
+                await updateIssue(workspaceSlug, draftIssueId, data);
               }}
             />
             <div
+              role="presentation"
               className={cn("hidden", {
                 "md:flex": isSidebarCollapsed,
                 "lg:flex": !isSidebarCollapsed,

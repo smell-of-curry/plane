@@ -17,8 +17,8 @@ import { cn } from "@plane/utils";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// plane web components
-import { IssueIdentifier } from "@/plane-web/components/issues/issue-details/issue-identifier";
+// components
+import { IssueIdentifier } from "@/components/issues/issue-detail/issue-identifier";
 // local imports
 import { ParentIssuesListModal } from "../parent-issues-list-modal";
 
@@ -73,7 +73,7 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
         issueId={issueId}
         isOpen={isParentIssueModalOpen === issueId}
         handleClose={() => toggleParentIssueModal(null)}
-        onChange={(issue: any) => handleParentIssue(issue?.id)}
+        onChange={(selectedIssue) => handleParentIssue(selectedIssue?.id)}
       />
       <button
         type="button"
@@ -108,7 +108,9 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
 
             {!disabled && (
               <Tooltip tooltipContent={t("common.remove")} position="bottom" isMobile={isMobile}>
-                <span
+                <button
+                  type="button"
+                  className="inline-flex"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -116,7 +118,7 @@ export const IssueParentSelect = observer(function IssueParentSelect(props: TIss
                   }}
                 >
                   <CloseIcon className="h-2.5 w-2.5 text-tertiary hover:text-danger-primary" />
-                </span>
+                </button>
               </Tooltip>
             )}
           </div>

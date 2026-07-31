@@ -14,7 +14,6 @@ import { EUserProjectRoles } from "@plane/types";
 // helpers
 import { filterPagesByPageType, getPageName, orderPages, shouldFilterPage } from "@plane/utils";
 // plane web store
-import type { RootStore } from "@/plane-web/store/root.store";
 // services
 import { ProjectPageService } from "@/services/page";
 // store
@@ -88,7 +87,7 @@ export class ProjectPageStore implements IProjectPageStore {
   service: ProjectPageService;
   rootStore: CoreRootStore;
 
-  constructor(private store: RootStore) {
+  constructor(private store: CoreRootStore) {
     makeObservable(this, {
       // observables
       loader: observable.ref,

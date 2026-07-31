@@ -19,11 +19,10 @@ import { ContextMenu, CustomMenu } from "@plane/ui";
 import { cn } from "@plane/utils";
 import { DeletePageModal } from "@/components/pages/modals/delete-page-modal";
 import { FolderNameModal } from "@/components/pages/modals/folder-name-modal";
+import { MovePageModal } from "@/components/pages/modals/move-page-modal";
 import { MoveToFolderModal } from "@/components/pages/modals/move-to-folder-modal";
 // hooks
 import { usePageOperations } from "@/hooks/use-page-operations";
-// plane web components
-import { MovePageModal } from "@/plane-web/components/pages";
 // plane web hooks
 import type { EPageStoreType } from "@/hooks/store";
 import { usePageFlag } from "@/hooks/use-page-flag";
