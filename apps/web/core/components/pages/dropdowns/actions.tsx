@@ -7,7 +7,15 @@
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { ArchiveRestoreIcon, FileOutput, FolderInput, FolderPen, LockKeyhole, LockKeyholeOpen } from "lucide-react";
+import {
+  ArchiveRestoreIcon,
+  Download,
+  FileOutput,
+  FolderInput,
+  FolderPen,
+  LockKeyhole,
+  LockKeyholeOpen,
+} from "lucide-react";
 // constants
 import { EPageAccess } from "@plane/constants";
 // plane editor
@@ -17,6 +25,7 @@ import type { TContextMenuItem } from "@plane/ui";
 import { ContextMenu, CustomMenu } from "@plane/ui";
 // components
 import { cn } from "@plane/utils";
+import { downloadPageAsText } from "@/components/pages/download-page-text";
 import { DeletePageModal } from "@/components/pages/modals/delete-page-modal";
 import { FolderNameModal } from "@/components/pages/modals/folder-name-modal";
 import { MovePageModal } from "@/components/pages/modals/move-page-modal";
@@ -42,6 +51,7 @@ export type TPageActions =
   | "delete"
   | "version-history"
   | "export"
+  | "download-text"
   | "move"
   | "move-to-folder"
   | "rename-folder";
@@ -123,6 +133,15 @@ export const PageActions = observer(function PageActions(props: Props) {
           shouldRender: !isFolder,
         },
         {
+          key: "download-text",
+          action: () => {
+            void downloadPageAsText(page, workspaceSlug?.toString() ?? "");
+          },
+          title: "Download as text",
+          icon: Download,
+          shouldRender: !isFolder,
+        },
+        {
           key: "make-a-copy",
           action: () => {
             pageOperations.duplicate();
@@ -190,6 +209,8 @@ export const PageActions = observer(function PageActions(props: Props) {
       isMovePageEnabled,
       pageOperations,
       isFolder,
+      page,
+      workspaceSlug,
     ]
   );
   // arrange options

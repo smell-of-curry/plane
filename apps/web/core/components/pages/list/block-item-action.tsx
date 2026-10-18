@@ -78,6 +78,7 @@ export const BlockItemAction = observer(function BlockItemAction(props: Props) {
       <PageActions
         optionsOrder={[
           "open-in-new-tab",
+          "download-text",
           "copy-link",
           "make-a-copy",
           "rename-folder",
