@@ -25,7 +25,7 @@ import type { TContextMenuItem } from "@plane/ui";
 import { ContextMenu, CustomMenu } from "@plane/ui";
 // components
 import { cn } from "@plane/utils";
-import { downloadPageAsText } from "@/components/pages/download-page-text";
+import { downloadFolderAsText, downloadPageAsText } from "@/components/pages/download-page-text";
 import { DeletePageModal } from "@/components/pages/modals/delete-page-modal";
 import { FolderNameModal } from "@/components/pages/modals/folder-name-modal";
 import { MovePageModal } from "@/components/pages/modals/move-page-modal";
@@ -72,7 +72,7 @@ export const PageActions = observer(function PageActions(props: Props) {
   const [moveToFolderModal, setMoveToFolderModal] = useState(false);
   const [renameFolderModal, setRenameFolderModal] = useState(false);
   // params
-  const { workspaceSlug } = useParams();
+  const { workspaceSlug, projectId } = useParams();
   // page flag
   const { isMovePageEnabled } = usePageFlag({
     workspaceSlug: workspaceSlug?.toString() ?? "",
@@ -135,11 +135,21 @@ export const PageActions = observer(function PageActions(props: Props) {
         {
           key: "download-text",
           action: () => {
-            void downloadPageAsText(page, workspaceSlug?.toString() ?? "");
+            const slug = workspaceSlug?.toString() ?? "";
+            if (isFolder && page.id) {
+              void downloadFolderAsText({
+                workspaceSlug: slug,
+                projectId: projectId?.toString() || page.project_ids?.[0] || "",
+                folderId: page.id,
+                folderName: page.name || "folder",
+              });
+              return;
+            }
+            void downloadPageAsText(page, slug);
           },
-          title: "Download as text",
+          title: isFolder ? "Download folder as text" : "Download as text",
           icon: Download,
-          shouldRender: !isFolder,
+          shouldRender: true,
         },
         {
           key: "make-a-copy",
@@ -211,6 +221,7 @@ export const PageActions = observer(function PageActions(props: Props) {
       isFolder,
       page,
       workspaceSlug,
+      projectId,
     ]
   );
   // arrange options

@@ -7,7 +7,7 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Folder, FolderPlus } from "lucide-react";
+import { Download, Folder, FolderPlus } from "lucide-react";
 // constants
 import { EPageAccess } from "@plane/constants";
 // plane types
@@ -20,6 +20,7 @@ import { Breadcrumbs, Header } from "@plane/ui";
 import { getPageName } from "@plane/utils";
 // helpers
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
+import { downloadFolderAsText } from "@/components/pages/download-page-text";
 import { FolderNameModal } from "@/components/pages/modals/folder-name-modal";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
@@ -32,6 +33,7 @@ export const PagesListHeader = observer(function PagesListHeader() {
   const [isCreatingPage, setIsCreatingPage] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [folderModalOpen, setFolderModalOpen] = useState(false);
+  const [isDownloadingFolder, setIsDownloadingFolder] = useState(false);
   // router
   const router = useRouter();
   const { workspaceSlug, projectId } = useParams();
@@ -150,21 +152,45 @@ export const PagesListHeader = observer(function PagesListHeader() {
           ))}
         </Breadcrumbs>
       </Header.LeftItem>
-      {canCurrentUserCreatePage && pageType !== "archived" && (
+      {(folderId || (canCurrentUserCreatePage && pageType !== "archived")) && (
         <Header.RightItem>
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => setFolderModalOpen(true)}
-            loading={isCreatingFolder}
-            className="flex items-center gap-1"
-          >
-            <FolderPlus className="h-4 w-4" />
-            {isCreatingFolder ? "Adding" : "Add folder"}
-          </Button>
-          <Button variant="primary" size="lg" onClick={handleCreatePage} loading={isCreatingPage}>
-            {isCreatingPage ? "Adding" : "Add page"}
-          </Button>
+          {folderId && (
+            <Button
+              variant="secondary"
+              size="lg"
+              loading={isDownloadingFolder}
+              className="flex items-center gap-1"
+              onClick={() => {
+                setIsDownloadingFolder(true);
+                void downloadFolderAsText({
+                  workspaceSlug: workspaceSlug?.toString() ?? "",
+                  projectId: projectId?.toString() ?? "",
+                  folderId,
+                  folderName: folderCrumbs.at(-1)?.name || "folder",
+                }).finally(() => setIsDownloadingFolder(false));
+              }}
+            >
+              <Download className="h-4 w-4" />
+              Download folder
+            </Button>
+          )}
+          {canCurrentUserCreatePage && pageType !== "archived" && (
+            <>
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={() => setFolderModalOpen(true)}
+                loading={isCreatingFolder}
+                className="flex items-center gap-1"
+              >
+                <FolderPlus className="h-4 w-4" />
+                {isCreatingFolder ? "Adding" : "Add folder"}
+              </Button>
+              <Button variant="primary" size="lg" onClick={handleCreatePage} loading={isCreatingPage}>
+                {isCreatingPage ? "Adding" : "Add page"}
+              </Button>
+            </>
+          )}
         </Header.RightItem>
       )}
     </Header>
