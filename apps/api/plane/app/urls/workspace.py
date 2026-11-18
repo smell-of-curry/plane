@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 from django.urls import path
+from plane.app.views.workspace.recently_deleted import RecentlyDeletedEndpoint
 
 
 from plane.app.views import (
@@ -40,6 +41,11 @@ from plane.app.views import (
 
 
 urlpatterns = [
+    path("workspaces/<str:slug>/recently-deleted/", RecentlyDeletedEndpoint.as_view(), name="recently-deleted"),
+    path(
+        "workspaces/<str:slug>/recently-deleted/<str:model_name>/<uuid:object_id>/restore/",
+        RecentlyDeletedEndpoint.as_view(), name="recently-deleted-restore",
+    ),
     path(
         "workspace-slug-check/",
         WorkSpaceAvailabilityCheckEndpoint.as_view(),

@@ -6,7 +6,7 @@
 from typing import Any
 
 # Django imports
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 # Module imports
@@ -48,7 +48,21 @@ class UserAuditModel(models.Model):
 class SoftDeletionQuerySet(models.QuerySet):
     def delete(self, soft=True):
         if soft:
-            return self.update(deleted_at=timezone.now())
+            from plane.utils.recycle_bin import RECOVERABLE_MODELS, capture_deletion, deletion_items
+
+            if self.model._meta.model_name in RECOVERABLE_MODELS and deletion_items.get() is None:
+                with transaction.atomic(using=self.db):
+                    instances = list(self.select_for_update(of=("self",)))
+                    for instance in instances:
+                        instance.delete(using=self.db)
+                    return len(instances)
+            deleted_at = timezone.now()
+            instances = list(self) if deletion_items.get() is not None else []
+            count = self.update(deleted_at=deleted_at)
+            for instance in instances:
+                instance.deleted_at = deleted_at
+                capture_deletion(instance)
+            return count
         else:
             return super().delete()
 
@@ -71,11 +85,18 @@ class SoftDeleteModel(models.Model):
 
     def delete(self, using=None, soft=True, *args, **kwargs):
         if soft:
+            from plane.utils.recycle_bin import RECOVERABLE_MODELS, capture_deletion, delete_recoverable, deletion_items
+
+            if self._meta.model_name in RECOVERABLE_MODELS and deletion_items.get() is None:
+                return delete_recoverable(self, using=using)
             # Soft delete the current instance
             self.deleted_at = timezone.now()
             self.save(using=using)
-
-            soft_delete_related_objects.delay(self._meta.app_label, self._meta.model_name, self.pk, using=using)
+            capture_deletion(self)
+            cascade = (
+                soft_delete_related_objects if deletion_items.get() is not None else soft_delete_related_objects.delay
+            )
+            cascade(self._meta.app_label, self._meta.model_name, self.pk, using=using)
 
         else:
             # Perform hard delete if soft deletion is not enabled

@@ -7,7 +7,7 @@
 import { useState, useRef } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter } from "next/navigation";
-import { MoreHorizontal, ArchiveIcon, Settings } from "lucide-react";
+import { MoreHorizontal, ArchiveIcon, Settings, Trash2 } from "lucide-react";
 import { Disclosure } from "@headlessui/react";
 // plane imports
 import { EUserPermissionsLevel } from "@plane/constants";
@@ -55,13 +55,13 @@ export const SidebarWorkspaceMenuHeader = observer(function SidebarWorkspaceMenu
         <span>{t("common.workspace")}</span>
       </Disclosure.Button>
       <CustomMenu
+        ariaLabel="Workspace actions"
+        menuButtonOnClick={() => setIsMenuActive(!isMenuActive)}
+        onMenuClose={() => setIsMenuActive(false)}
         customButton={
           <span
             ref={actionSectionRef}
             className="my-auto grid place-items-center rounded-sm p-0.5 text-placeholder hover:bg-layer-1"
-            onClick={() => {
-              setIsMenuActive(!isMenuActive);
-            }}
           >
             <MoreHorizontal className="size-4" />
           </span>
@@ -79,6 +79,13 @@ export const SidebarWorkspaceMenuHeader = observer(function SidebarWorkspaceMenu
           <div className="flex items-center justify-start gap-2">
             <ArchiveIcon className="h-3.5 w-3.5 stroke-[1.5]" />
             <span>{t("archives")}</span>
+          </div>
+        </CustomMenu.MenuItem>
+
+        <CustomMenu.MenuItem onClick={() => router.push(`/${workspaceSlug}/recently-deleted`)}>
+          <div className="flex items-center justify-start gap-2">
+            <Trash2 className="h-3.5 w-3.5 stroke-[1.5]" />
+            <span>Recently Deleted</span>
           </div>
         </CustomMenu.MenuItem>
 

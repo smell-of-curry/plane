@@ -8,6 +8,7 @@ from django.apps import apps
 from django.conf import settings
 from django.db import models
 from django.db.models.fields.related import OneToOneRel
+from plane.utils.recycle_bin import capture_deletion, capture_detachment, deletion_items
 
 
 # Third party imports
@@ -26,6 +27,10 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
     try:
         instance = model_class.all_objects.get(pk=instance_pk)
     except model_class.DoesNotExist:
+        return
+
+    # A delayed legacy cascade must not delete an already-restored root again.
+    if hasattr(instance, "deleted_at") and instance.deleted_at is None:
         return
 
     # Get all related fields that are reverse relationships
@@ -53,11 +58,16 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
                 # For OneToOne relationships
                 related_obj = getattr(instance, related_name, None)
                 if related_obj and isinstance(related_obj, models.Model):
+                    capture_detachment(related_obj, relation.remote_field.name)
                     setattr(related_obj, relation.remote_field.name, None)
                     related_obj.save(update_fields=[relation.remote_field.name])
             else:
                 # For other relationships
                 related_queryset = getattr(instance, related_name).all()
+                if deletion_items.get() is not None:
+                    related_queryset = related_queryset.select_for_update(of=("self",))
+                    for related_obj in related_queryset:
+                        capture_detachment(related_obj, relation.remote_field.name)
                 related_queryset.update(**{relation.remote_field.name: None})
 
         else:
@@ -71,6 +81,7 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
                             if not related_obj.deleted_at:
                                 related_obj.deleted_at = timezone.now()
                                 related_obj.save()
+                                capture_deletion(related_obj)
                                 # Recursively handle related objects
                                 soft_delete_related_objects(
                                     related_obj._meta.app_label,
@@ -81,12 +92,15 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
                 else:
                     # Handle other relationships
                     related_queryset = getattr(instance, related_name)(manager="objects").all()
+                    if deletion_items.get() is not None:
+                        related_queryset = related_queryset.select_for_update(of=("self",))
 
                     for related_obj in related_queryset:
                         if hasattr(related_obj, "deleted_at"):
                             if not related_obj.deleted_at:
                                 related_obj.deleted_at = timezone.now()
                                 related_obj.save()
+                                capture_deletion(related_obj)
                                 # Recursively handle related objects
                                 soft_delete_related_objects(
                                     related_obj._meta.app_label,
@@ -95,6 +109,8 @@ def soft_delete_related_objects(app_label, model_name, instance_pk, using=None):
                                     using,
                                 )
             except Exception as e:
+                if deletion_items.get() is not None:
+                    raise
                 # Log the error or handle as needed
                 print(f"Error handling relation {related_name}: {str(e)}")
                 continue
@@ -131,9 +147,11 @@ def hard_delete():
         CycleIssue,
         Estimate,
         EstimatePoint,
+        DeletionRecord,
     )
 
     days = settings.HARD_DELETE_AFTER_DAYS
+    DeletionRecord.objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
     # check delete workspace
     _ = Workspace.all_objects.filter(deleted_at__lt=timezone.now() - timezone.timedelta(days=days)).delete()
 
