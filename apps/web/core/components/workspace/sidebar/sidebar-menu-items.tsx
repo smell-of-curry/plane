@@ -28,6 +28,7 @@ import {
   useWorkspaceNavigationPreferences,
 } from "@/hooks/use-navigation-preferences";
 import { SidebarItemBase } from "./sidebar-item";
+import { RecentlyDeletedSidebarLink } from "./recently-deleted-link";
 
 export const SidebarMenuItems = observer(function SidebarMenuItems() {
   // routers
@@ -153,6 +154,7 @@ export const SidebarMenuItems = observer(function SidebarMenuItems() {
                   // oxlint-disable-next-line react/no-array-index-key
                   <SidebarItemBase key={`static_${_index}`} item={item} />
                 ))}
+                <RecentlyDeletedSidebarLink />
                 {sortedNavigationItems.map((item, _index) => (
                   // oxlint-disable-next-line react/no-array-index-key
                   <SidebarItemBase key={`dynamic_${_index}`} item={item} />

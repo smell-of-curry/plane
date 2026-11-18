@@ -16,6 +16,7 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // components
 import { ExtendedSidebarItem } from "@/components/workspace/sidebar/extended-sidebar-item";
+import { RecentlyDeletedSidebarLink } from "@/components/workspace/sidebar/recently-deleted-link";
 import { ExtendedSidebarWrapper } from "./extended-sidebar-wrapper";
 
 export const ExtendedAppSidebar = observer(function ExtendedAppSidebar() {
@@ -135,6 +136,7 @@ export const ExtendedAppSidebar = observer(function ExtendedAppSidebar() {
           handleOnNavigationItemDrop={handleOnNavigationItemDrop}
         />
       ))}
+      <RecentlyDeletedSidebarLink />
     </ExtendedSidebarWrapper>
   );
 });

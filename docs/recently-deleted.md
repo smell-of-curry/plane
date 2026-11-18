@@ -1,6 +1,7 @@
 # Recently Deleted
 
-Open the workspace sidebar's **… → Recently Deleted** menu, or visit
+Open **Workspace → Recently Deleted** in the main sidebar. It is also available
+alongside Archives in the sidebar's **More** panel. Or visit
 `/<workspace>/recently-deleted`.
 
 Supported items: projects, work items, modules, cycles, pages, views, and labels.
