@@ -5,7 +5,20 @@
 from django.urls import path
 from plane.app.views import ApiTokenEndpoint
 
+from plane.app.views.webhook.token import TokenWebhooksEndpoint
+
+
 urlpatterns = [
+    path(
+        "users/api-tokens/<uuid:token_id>/webhooks/",
+        TokenWebhooksEndpoint.as_view(http_method_names=["get", "post", "options"]),
+        name="token-webhooks",
+    ),
+    path(
+        "users/api-tokens/<uuid:token_id>/webhooks/<uuid:pk>/",
+        TokenWebhooksEndpoint.as_view(http_method_names=["delete", "options"]),
+        name="token-webhook-detail",
+    ),
     # API Tokens
     path(
         "users/api-tokens/",

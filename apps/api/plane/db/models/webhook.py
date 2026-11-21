@@ -107,3 +107,19 @@ class ProjectWebhook(ProjectBaseModel):
         verbose_name_plural = "Project Webhooks"
         db_table = "project_webhooks"
         ordering = ("-created_at",)
+
+
+class TokenWebhook(models.Model):
+    id = models.UUIDField(primary_key=True, editable=False, default=uuid4)
+    token = models.ForeignKey("db.APIToken", on_delete=models.CASCADE)
+    project = models.ForeignKey("db.Project", on_delete=models.CASCADE)
+    url = models.URLField(max_length=1024)
+    events = models.JSONField()
+    encrypted_receiver_key = models.TextField(blank=True, default="")
+    secret_key = models.CharField(max_length=255, default=generate_token)
+
+    class Meta:
+        db_table = "token_webhooks"
+        constraints = [
+            models.UniqueConstraint(fields=["token", "project", "url"], name="token_webhook_unique_destination")
+        ]

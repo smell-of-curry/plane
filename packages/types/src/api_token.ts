@@ -20,3 +20,20 @@ export interface IApiToken {
   token?: string;
   workspace: string;
 }
+
+export type TokenWebhookEvent = "issue" | "issue_comment" | "cycle" | "module" | "project";
+
+export interface TokenWebhookInput {
+  project: string;
+  url: string;
+  events: TokenWebhookEvent[];
+}
+
+export interface TokenWebhook extends TokenWebhookInput {
+  id: string;
+}
+
+export interface TokenWebhookSettings {
+  webhooks: TokenWebhook[];
+  projects: { id: string; name: string; workspace__slug: string }[];
+}

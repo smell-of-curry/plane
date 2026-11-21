@@ -5,7 +5,7 @@
  */
 
 import { API_BASE_URL } from "@plane/constants";
-import type { IApiToken } from "@plane/types";
+import type { IApiToken, TokenWebhook, TokenWebhookInput, TokenWebhookSettings } from "@plane/types";
 import { APIService } from "../api.service";
 
 export class APITokenService extends APIService {
@@ -66,5 +66,20 @@ export class APITokenService extends APIService {
       .catch((error) => {
         throw error?.response?.data;
       });
+  }
+
+  async listWebhooks(tokenId: string): Promise<TokenWebhookSettings> {
+    return (await this.get(`/api/users/api-tokens/${tokenId}/webhooks/`)).data;
+  }
+
+  async createWebhook(
+    tokenId: string,
+    data: TokenWebhookInput & { receiver_key?: string }
+  ): Promise<TokenWebhook & { secret_key: string }> {
+    return (await this.post(`/api/users/api-tokens/${tokenId}/webhooks/`, data)).data;
+  }
+
+  async deleteWebhook(tokenId: string, webhookId: string): Promise<void> {
+    await this.delete(`/api/users/api-tokens/${tokenId}/webhooks/${webhookId}/`);
   }
 }

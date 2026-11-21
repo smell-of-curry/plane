@@ -7,3 +7,6 @@ from django.apps import AppConfig
 
 class DbConfig(AppConfig):
     name = "plane.db"
+
+    def ready(self):
+        from plane.bgtasks import token_webhook  # noqa: F401

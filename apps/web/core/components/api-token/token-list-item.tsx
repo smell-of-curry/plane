@@ -12,6 +12,7 @@ import { Tooltip } from "@plane/propel/tooltip";
 import type { IApiToken } from "@plane/types";
 import { renderFormattedDate, calculateTimeAgo, renderFormattedTime } from "@plane/utils";
 // components
+import { TokenWebhooks } from "./token-webhooks";
 import { DeleteApiTokenModal } from "@/components/api-token/delete-token-modal";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -62,6 +63,9 @@ export function ApiTokenListItem(props: Props) {
               : `Expired ${calculateTimeAgo(token.expired_at)}`}
           </p>
         </div>
+        {token.is_active && (!token.expired_at || new Date(token.expired_at).getTime() > Date.now()) && (
+          <TokenWebhooks tokenId={token.id} />
+        )}
       </div>
     </>
   );

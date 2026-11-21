@@ -135,6 +135,9 @@ class APITokenLogMiddleware:
         if not api_key:
             return
 
+        # Webhook management bodies contain private callback URLs and signing secrets.
+        route = getattr(request, "resolver_match", None)
+        record_body = getattr(route, "url_name", None) not in {"token-webhooks", "token-webhook-detail"}
         try:
             log_data = {
                 # Tokenize the (high-entropy) API key into a stable, non-reversible
@@ -148,8 +151,8 @@ class APITokenLogMiddleware:
                 "method": request.method,
                 "query_params": request.META.get("QUERY_STRING", ""),
                 "headers": self._redacted_headers(request),
-                "body": self._safe_decode_body(request_body) if request_body else None,
-                "response_body": self._safe_decode_body(response.content) if response.content else None,
+                "body": self._safe_decode_body(request_body) if record_body and request_body else None,
+                "response_body": self._safe_decode_body(response.content) if record_body and response.content else None,
                 "response_code": response.status_code,
                 "ip_address": get_client_ip(request=request),
                 "user_agent": request.META.get("HTTP_USER_AGENT", None),

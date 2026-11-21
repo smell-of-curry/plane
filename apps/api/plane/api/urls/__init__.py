@@ -15,7 +15,21 @@ from .work_item import urlpatterns as work_item_patterns
 from .invite import urlpatterns as invite_patterns
 from .sticky import urlpatterns as sticky_patterns
 
+from django.urls import path
+from plane.app.views.webhook.token import ExternalTokenWebhooksEndpoint
+
+
 urlpatterns = [
+    path(
+        "webhooks/",
+        ExternalTokenWebhooksEndpoint.as_view(http_method_names=["get", "post", "options"]),
+        name="token-webhooks",
+    ),
+    path(
+        "webhooks/<uuid:pk>/",
+        ExternalTokenWebhooksEndpoint.as_view(http_method_names=["delete", "options"]),
+        name="token-webhook-detail",
+    ),
     *asset_patterns,
     *cycle_patterns,
     *intake_patterns,
